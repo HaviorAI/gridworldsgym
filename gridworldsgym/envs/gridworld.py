@@ -1,5 +1,3 @@
-import gym
-from gym import spaces
 import numpy as np
 
 from gridworldsgym.envs.discrete import FiniteStateMDP
@@ -12,14 +10,20 @@ LEFT = 3
 
 class GridWorldV0(FiniteStateMDP):
     """ Grid world example from chapter 17 of Artificial Intelligence: A modern approach ()
-        Terminal states are at (1, 3) and (2, 3) with a reward of -1 and +1 respectively.
-        There's an 80% chance that the desired action will result the desired move, and a 10%
-        it will result in a move to the left or to the right of the desired direction.
+        Terminal states are at (1, 3) and (2, 3) with a reward of -1 and +1 respectively. If
+        slippery = True, then there's an 80% chance that the desired action will result the
+        desired move, and a 10% it will result in a slip to the left or to the right of the
+        desired direction. If slippery = False, the desired action will be taken without any
+        slipping.
     """
 
-    def __init__(self, width=4, height=3):
+    def render(self, mode='human'):
+        pass
+
+    def __init__(self, width=4, height=3, slippery=False):
         self.width = width
         self.height = height
+        self.slippery = slippery
         num_states = width * height
         num_actions = 4
         isd = np.zeros(num_states)
@@ -34,7 +38,7 @@ class GridWorldV0(FiniteStateMDP):
     def _to_state(self, row, col):
         return row * self.width + col
 
-    def _to_row_col(self, state):
+    def to_row_col(self, state):
         row = state // self.width
         col = state - row * self.width
         return row, col
@@ -59,8 +63,12 @@ class GridWorldV0(FiniteStateMDP):
                     if (row, col) in self.terminal_states:
                         transitions[state][action].append((0.0, state, True))
                     else:
-                        action_probs = [0.1, 0.8, 0.1]
-                        actions = [(action - 1) % self.num_actions, action, (action + 1) % self.num_actions]
+                        if self.slippery:
+                            action_probs = [0.1, 0.8, 0.1]
+                            actions = [(action - 1) % self.num_actions, action, (action + 1) % self.num_actions]
+                        else:
+                            action_probs = [1.0]
+                            actions = [action]
                         for i in range(len(actions)):
                             new_row, new_col = self._move(row, col, actions[i])
                             new_state = self._to_state(new_row, new_col)
@@ -81,7 +89,7 @@ class GridWorldV0(FiniteStateMDP):
         return rewards
 
     def _check_done(self):
-        return self._to_row_col(self.state) in self.terminal_states
+        return self.to_row_col(self.state) in self.terminal_states
 
     def P(self, state, action):
         return self.transitions[state][action]

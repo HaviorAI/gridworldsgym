@@ -8,7 +8,8 @@ class CliffGridWorldV0(GridWorldV0):
         super(CliffGridWorldV0, self).__init__(width, height, slippery=slippery)
         self.isd = np.zeros(self.num_states)
         self.isd[self._to_state(3, 0)] = 1.0
-        self.terminal_states = [(3, i) for i in range(1, self.width)]
+        self.goal_states = [(3, self.width - 1)]
+        self.terminal_states = [(3, i) for i in range(1, self.width - 1)]
         self.illegal_states = []
         self.transitions = self._generate_transitions()
         self.rewards = self._generate_rewards()

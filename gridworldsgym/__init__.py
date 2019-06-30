@@ -13,3 +13,8 @@ register(id='WindyGridWorld-v0',
 
 register(id='CliffGridWorld-v0',
          entry_point='gridworldsgym.envs:CliffGridWorldV0')
+
+register(id='SlipperyCliffGridWorld-v0',
+         entry_point='gridworldsgym.envs:CliffGridWorldV0',
+         kwargs={'slippery': True}
+         )

@@ -11,7 +11,8 @@ class WindyGridWorldV0(GridWorldV0):
         super(WindyGridWorldV0, self).__init__(width, height)
         self.isd = np.zeros(self.num_states)
         self.isd[30] = 1.0
-        self.terminal_states = [(3, 7)]
+        self.goal_states = [(3, 7)]
+        self.terminal_states = []
         self.illegal_states = []
         self.transitions = self._generate_transitions()
         self.rewards = self._generate_rewards()
@@ -35,7 +36,7 @@ class WindyGridWorldV0(GridWorldV0):
             for col in range(self.width):
                 state = self._to_state(row, col)
                 for action in range(self.num_actions):
-                    if (row, col) in self.terminal_states:
+                    if (row, col) in self.terminal_states or (row, col) in self.goal_states:
                         transitions[state][action].append((0.0, state, True))
                     else:
                         action_probs = [1.0]
@@ -43,7 +44,7 @@ class WindyGridWorldV0(GridWorldV0):
                         for i in range(len(actions)):
                             new_row, new_col = self._move(row, col, actions[i])
                             new_state = self._to_state(new_row, new_col)
-                            done = (new_row, new_col) in self.terminal_states
+                            done = (new_row, new_col) in self.terminal_states or (new_row, new_col) in self.goal_states
                             transitions[state][action].append((action_probs[i], new_state, done))
         return transitions
 

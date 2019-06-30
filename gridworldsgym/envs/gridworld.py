@@ -7,6 +7,11 @@ RIGHT = 1
 DOWN = 2
 LEFT = 3
 
+NORTH = 0
+SOUTH = np.math.pi
+EAST = -np.math.pi / 2
+WEST = -3 * np.math.pi / 2
+
 
 class GridWorldV0(FiniteStateMDP):
     """ Grid world example from chapter 17 of Artificial Intelligence: A modern approach ()
@@ -18,7 +23,61 @@ class GridWorldV0(FiniteStateMDP):
     """
 
     def render(self, mode='human'):
-        pass
+        # TODO: add option to show cumulative rewards
+        # TODO: add option to show value function
+        screen_width = 100 * self.width
+        screen_height = 100 * self.height
+
+        self._set_heading(self.last_action)
+
+        def get_x_y(row, col):
+            return col * 100 + 50, screen_height - (row * 100 + 50)
+
+        if self.viewer is None:
+            from gym.envs.classic_control import rendering
+            self.viewer = rendering.Viewer(screen_width, screen_height)
+            for i in range(1, self.width):
+                line = rendering.Line((i * 100, 0), (i * 100, screen_height))
+                line.set_color(0, 0, 0)
+                self.viewer.add_geom(line)
+            for j in range(1, self.height):
+                line = rendering.Line((0, j * 100), (screen_width, j * 100))
+                line.set_color(0, 0, 0)
+                self.viewer.add_geom(line)
+
+            for row, col in self.goal_states:
+                goal = rendering.FilledPolygon([(-49, -49), (-49, 49), (49, 49), (49, -49)])
+                goal.set_color(0.0, 1.0, 0.0)
+                goal_transform = rendering.Transform()
+                goal.add_attr(goal_transform)
+                new_x, new_y = get_x_y(row, col)
+                goal_transform.set_translation(new_x, new_y)
+                self.viewer.add_geom(goal)
+
+            for row, col in self.terminal_states:
+                goal = rendering.FilledPolygon([(-49, -49), (-49, 49), (49, 49), (49, -49)])
+                goal.set_color(1.0, 0.0, 0.0)
+                goal_transform = rendering.Transform()
+                goal.add_attr(goal_transform)
+                new_x, new_y = get_x_y(row, col)
+                goal_transform.set_translation(new_x, new_y)
+                self.viewer.add_geom(goal)
+
+            agent_size = 50
+            l, r, t, b = -agent_size / 2, agent_size / 2, agent_size / 2, -agent_size / 2
+            x, y = get_x_y(0, 0)
+            self.agent_transform = rendering.Transform(translation=(x, y))
+            agent = rendering.FilledPolygon([(l, b), (0.0, t), (0.0 * r, t), (r, b)])
+            agent.set_color(95 / 256, 125 / 256, 153 / 256)
+            agent.add_attr(self.agent_transform)
+            self.viewer.add_geom(agent)
+
+        row, col = self.to_row_col(self.state)
+        new_x, new_y = get_x_y(row, col)
+        self.agent_transform.set_translation(new_x, new_y)
+        self.agent_transform.set_rotation(self.heading)
+
+        return self.viewer.render(return_rgb_array=mode == 'rgb_array')
 
     def __init__(self, width=4, height=3, slippery=False):
         self.width = width
@@ -29,11 +88,14 @@ class GridWorldV0(FiniteStateMDP):
         isd = np.zeros(num_states)
         # this starts the agent in state 0
         isd[0] = 1
-        self.terminal_states = [(1, 3), (2, 3)]
+        self.goal_states = [(2, 3)]
+        self.terminal_states = [(1, 3)]
         self.illegal_states = [(1, 1)]
         super(GridWorldV0, self).__init__(num_states, num_actions, isd=isd)
         self.transitions = self._generate_transitions()
         self.rewards = self._generate_rewards()
+        self.viewer = None
+        self.heading = NORTH
 
     def _to_state(self, row, col):
         return row * self.width + col
@@ -52,7 +114,18 @@ class GridWorldV0(FiniteStateMDP):
             col = min(col + 1, self.width - 1)
         elif action == UP:
             row = max(row - 1, 0)
+
         return row, col
+
+    def _set_heading(self, action):
+        if action == LEFT:
+            self.heading = WEST
+        elif action == DOWN:
+            self.heading = SOUTH
+        elif action == RIGHT:
+            self.heading = EAST
+        elif action == UP:
+            self.heading = NORTH
 
     def _generate_transitions(self):
         transitions = {s: {a: [] for a in range(self.num_actions)} for s in range(self.num_states)}
@@ -60,7 +133,7 @@ class GridWorldV0(FiniteStateMDP):
             for col in range(self.width):
                 state = self._to_state(row, col)
                 for action in range(self.num_actions):
-                    if (row, col) in self.terminal_states:
+                    if (row, col) in self.terminal_states or (row, col) in self.goal_states:
                         transitions[state][action].append((0.0, state, True))
                     else:
                         if self.slippery:
@@ -74,7 +147,7 @@ class GridWorldV0(FiniteStateMDP):
                             new_state = self._to_state(new_row, new_col)
                             if (new_row, new_col) in self.illegal_states:
                                 new_state = state
-                            done = (new_row, new_col) in self.terminal_states
+                            done = (new_row, new_col) in self.terminal_states or (new_row, new_col) in self.goal_states
                             transitions[state][action].append((action_probs[i], new_state, done))
         return transitions
 
@@ -82,10 +155,10 @@ class GridWorldV0(FiniteStateMDP):
         rewards = -0.04 * np.ones(self.num_states)
         for illegal_state in self.illegal_states:
             rewards[self._to_state(*illegal_state)] = None
-        term_state_1 = self._to_state(*self.terminal_states[0])
-        term_state_2 = self._to_state(*self.terminal_states[1])
-        rewards[term_state_1] = -1.0
-        rewards[term_state_2] = 1.0
+        term_state = self._to_state(*self.terminal_states[0])
+        goal_state = self._to_state(*self.goal_states[0])
+        rewards[term_state] = -1.0
+        rewards[goal_state] = 1.0
         return rewards
 
     def _check_done(self):

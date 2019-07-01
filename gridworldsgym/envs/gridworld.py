@@ -22,6 +22,11 @@ class GridWorldV0(FiniteStateMDP):
         slipping.
     """
 
+    def close(self):
+        if self.viewer:
+            self.viewer.close()
+            self.viewer = None
+
     def render(self, mode='human'):
         # TODO: add option to show cumulative rewards
         # TODO: add option to show value function
@@ -36,13 +41,16 @@ class GridWorldV0(FiniteStateMDP):
         if self.viewer is None:
             from gym.envs.classic_control import rendering
             self.viewer = rendering.Viewer(screen_width, screen_height)
+            line_width = rendering.LineWidth(4)
             for i in range(1, self.width):
                 line = rendering.Line((i * 100, 0), (i * 100, screen_height))
                 line.set_color(0, 0, 0)
+                line.attrs[1] = line_width
                 self.viewer.add_geom(line)
             for j in range(1, self.height):
                 line = rendering.Line((0, j * 100), (screen_width, j * 100))
                 line.set_color(0, 0, 0)
+                line.attrs[1] = line_width
                 self.viewer.add_geom(line)
 
             for row, col in self.goal_states:

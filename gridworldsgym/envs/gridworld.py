@@ -14,7 +14,7 @@ WEST = -3 * np.math.pi / 2
 
 
 class GridWorldV0(FiniteStateMDP):
-    """ Grid world example from chapter 17 of Artificial Intelligence: A modern approach ()
+    """ Simple GridWorld for reinforcement learning.
         Terminal states are at (1, 3) and (2, 3) with a reward of -1 and +1 respectively. If
         slippery = True, then there's an 80% chance that the desired action will result the
         desired move, and a 10% it will result in a slip to the left or to the right of the

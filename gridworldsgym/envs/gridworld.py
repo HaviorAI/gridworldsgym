@@ -41,7 +41,7 @@ class GridWorldV0(FiniteStateMDP):
         if self.viewer is None:
             from gym.envs.classic_control import rendering
             self.viewer = rendering.Viewer(screen_width, screen_height)
-            line_width = rendering.LineWidth(4)
+            line_width = rendering.LineWidth(5)
             for i in range(1, self.width):
                 line = rendering.Line((i * 100, 0), (i * 100, screen_height))
                 line.set_color(0, 0, 0)

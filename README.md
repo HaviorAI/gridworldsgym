@@ -16,6 +16,15 @@ $ env = gym.make('GridWorld-v0')
 ## Type of Gridworlds
 
 1. **GridWorld-v0**: Simple grid world from [Artificial Intelligence: A modern approach by Russel and Norvig](http://aima.cs.berkeley.edu/)
+
+<div style="text-align:center;">
+
+![](gifs/gridworld.gif)
+
+</div>
+
+
+
 2. **SlipperyGridWorld-v0**: Simple grid world with slippery actions from [Artificial Intelligence: A modern approach by Russel and Norvig](http://aima.cs.berkeley.edu/)
 3. **WindyGridWorld-v0**: Windy Grid World from [Reinforcement Learning by Sutton and Barto](http://incompleteideas.net/book/RLbook2018.pdf)
 4. **CliffGridWorld-v0**: Cliff Grid World from [Reinforcement Learning by Sutton and Barto](http://incompleteideas.net/book/RLbook2018.pdf)

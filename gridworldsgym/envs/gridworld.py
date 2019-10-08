@@ -33,12 +33,12 @@ class GridWorldV0(FiniteStateMDP):
             self.viewer.close()
             self.viewer = None
 
-    def render(self, mode='human', values=None):
+    def render(self, mode='human', values=None, show_rewards=False):
         lw = 5
         square_size = 100
         screen_width = square_size * self.width + lw
         screen_height_init = square_size * self.height
-        height_multiplier = (1.1 if self.show_reward and values is None else 1)
+        height_multiplier = (1.1 if self.show_cum_reward and values is None else 1)
         screen_height = int(screen_height_init * height_multiplier) + lw
         diff = screen_height - screen_height_init
 
@@ -99,7 +99,7 @@ class GridWorldV0(FiniteStateMDP):
             agent = rendering.FilledPolygon([(l, b), (0.0, t), (0.0 * r, t), (r, b)])
             agent.set_color(95 / 256, 125 / 256, 153 / 256)
             agent.add_attr(self.agent_transform)
-            if values is None:
+            if values is None and not show_rewards:
                 self.viewer.add_geom(agent)
 
             if values is not None:
@@ -111,7 +111,14 @@ class GridWorldV0(FiniteStateMDP):
                     self.viewer.add_geom(label)
                     self.labels.append(label)
 
-            if self.show_reward and values is None:
+            if show_rewards and values is None:
+                for state in range(self.num_states):
+                    s_row, s_col = self.to_row_col(state)
+                    s_x, s_y = get_x_y(s_row, s_col)
+                    label = rendering.Label(s_x, s_y, string=str(self.rewards[state]))
+                    self.viewer.add_geom(label)
+
+            if self.show_cum_reward and values is None:
                 reward_label = rendering.Label(200, screen_height - 2 * lw)
                 self.reward_label = reward_label
                 self.viewer.add_geom(reward_label)
@@ -120,7 +127,7 @@ class GridWorldV0(FiniteStateMDP):
             for state in range(self.num_states):
                 self.labels[state].label.text = str(round(values[state], 2))
 
-        if self.show_reward and values is None:
+        if self.show_cum_reward and values is None:
             self.reward_label.label.text = "Cumulative reward: " + str(self.cum_reward)
 
         row, col = self.to_row_col(self.state)
@@ -149,7 +156,7 @@ class GridWorldV0(FiniteStateMDP):
         self.rewards = self._generate_rewards()
         self.viewer = None
         self.heading = NORTH
-        self.show_reward = False
+        self.show_cum_reward = False
         self.cum_reward = 0.0
 
     def _to_state(self, row, col):

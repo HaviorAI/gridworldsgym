@@ -142,7 +142,7 @@ class GridWorldV0(FiniteStateMDP):
                 state = self._to_state(row, col)
                 for action in range(self.num_actions):
                     if (row, col) in self.terminal_states or (row, col) in self.goal_states:
-                        transitions[state][action].append((0.0, state, True))
+                        transitions[state][action].append((0.99, state, True))
                     else:
                         if self.slippery:
                             action_probs = [0.1, 0.8, 0.1]

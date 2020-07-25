@@ -6,7 +6,8 @@ setup(name='gridworldsgym',
       author='Miguel Alonso Jr.',
       install_requires=[
           'numpy',
-          'gym',
+          'gym==0.15.7',
+          'pyglet==1.3.2',
           'visdom'
       ],
       packages=find_packages(),

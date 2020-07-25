@@ -195,22 +195,22 @@ class GridWorldV0(FiniteStateMDP):
             for col in range(self.width):
                 state = self._to_state(row, col)
                 for action in range(self.num_actions):
-                    if (row, col) in self.terminal_states or (row, col) in self.goal_states:
-                        transitions[state][action].append((0.99, state, True))
+                    # if (row, col) in self.terminal_states or (row, col) in self.goal_states:
+                    #     transitions[state][action].append((0.500275, state, True))
+                    # else:
+                    if self.slippery:
+                        action_probs = [0.1, 0.8, 0.1]
+                        actions = [(action - 1) % self.num_actions, action, (action + 1) % self.num_actions]
                     else:
-                        if self.slippery:
-                            action_probs = [0.1, 0.8, 0.1]
-                            actions = [(action - 1) % self.num_actions, action, (action + 1) % self.num_actions]
-                        else:
-                            action_probs = [1.0]
-                            actions = [action]
-                        for i in range(len(actions)):
-                            new_row, new_col = self._move(row, col, actions[i])
-                            new_state = self._to_state(new_row, new_col)
-                            if (new_row, new_col) in self.illegal_states:
-                                new_state = state
-                            done = (new_row, new_col) in self.terminal_states or (new_row, new_col) in self.goal_states
-                            transitions[state][action].append((action_probs[i], new_state, done))
+                        action_probs = [1.0]
+                        actions = [action]
+                    for i in range(len(actions)):
+                        new_row, new_col = self._move(row, col, actions[i])
+                        new_state = self._to_state(new_row, new_col)
+                        if (new_row, new_col) in self.illegal_states:
+                            new_state = state
+                        done = (new_row, new_col) in self.terminal_states or (new_row, new_col) in self.goal_states
+                        transitions[state][action].append((action_probs[i], new_state, done))
         return transitions
 
     def _generate_rewards(self):

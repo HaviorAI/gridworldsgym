@@ -7,8 +7,7 @@ setup(name='gridworldsgym',
       install_requires=[
           'numpy',
           'gym==0.15.7',
-          'pyglet==1.3.2',
-          'visdom'
+          'pyglet==1.3.2'
       ],
       packages=find_packages(),
       python_requires='>=3.6',
